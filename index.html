@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Thiệp Mời Kỷ Yếu</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500&family=Montserrat:wght@300;400;500;600;800&family=Playfair+Display:ital,wght@0,400;0,600;0,800;1,400;1,600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --bg-base: #FFFAFA; 
+            --text-primary: #2D1214; 
+            --text-secondary: #634E50;
+            --accent-deep: #822727; 
+            --accent-light: #C53030;
+            --line-color: rgba(130, 39, 39, 0.2);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * { animation: none !important; transition: none !important; }
+        }
+
+        * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+
+        body {
+            margin: 0; padding: 0;
+            background-color: var(--bg-base);
+            font-family: 'Montserrat', sans-serif;
+            color: var(--text-primary);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        .tech-font { font-family: 'Tektur', sans-serif; letter-spacing: -0.5px; }
+        .serif-font { font-family: 'Playfair Display', serif; }
+        .final-font {
+  font-family: "Public Sans", sans-serif;  font-style: Bold;
+}
+
+
+        .ambient-light {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1;
+            background: var(--bg-base); overflow: hidden;
+        }
+
+        .light-orb {
+            position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.4;
+            will-change: transform;
+        }
+        .orb-1 { top: -15%; left: -10%; width: 75vw; height: 75vw; background: radial-gradient(circle, #FED7D7 0%, rgba(255,255,255,0) 70%); animation: float1 45s infinite alternate ease-in-out; }
+        .orb-2 { bottom: -10%; right: -5%; width: 65vw; height: 65vw; background: radial-gradient(circle, #FFE4E4 0%, rgba(255,255,255,0) 70%); animation: float2 38s infinite alternate ease-in-out; }
+        @keyframes float1 { from { transform: translate(0, 0); } to { transform: translate(30px, 40px); } }
+        @keyframes float2 { from { transform: translate(0, 0); } to { transform: translate(-30px, -30px); } }
+
+        #ios-permission {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 250, 250, 0.98); z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            backdrop-filter: blur(25px); transition: opacity 0.5s;
+        }
+
+        .btn-start {
+            padding: 16px 48px; background: linear-gradient(135deg, #9B2C2C, var(--accent-deep));
+            color: #fff; border: none; border-radius: 50px; font-size: 14px; letter-spacing: 2px; text-transform: uppercase;
+            cursor: pointer; box-shadow: 0 10px 30px rgba(130, 39, 39, 0.25); transition: transform 0.2s;
+        }
+        .btn-start:active { transform: scale(0.96); }
+
+        .hero-section {
+            height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            perspective: 1200px; overflow: hidden; position: relative;
+        }
+
+        .card-container {
+            width: clamp(300px, 85vw, 400px); height: clamp(480px, 65vh, 600px);
+            position: relative; transform-style: preserve-3d; 
+            transition: transform 0.1s cubic-bezier(0.1, 0.5, 0.2, 1);
+            will-change: transform; pointer-events: auto; touch-action: none; cursor: grab;
+        }
+        .card-container:active { cursor: grabbing; }
+
+        .card {
+            width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+            border-radius: 24px; border: 1px solid rgba(255,255,255,0.9);
+            box-shadow: 0 40px 80px -20px rgba(45, 18, 20, 0.1), inset 0 0 0 1px rgba(255,255,255,0.6);
+            padding: 30px; display: flex; flex-direction: column; justify-content: space-between;
+            position: relative; overflow: hidden; transform-style: preserve-3d;
+            user-select: none; -webkit-user-select: none;
+        }
+
+        .card-shine {
+            position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: linear-gradient(135deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0) 70%);
+            transform: rotate(30deg); pointer-events: none; opacity: 0; transition: opacity 0.3s; z-index: 1;
+        }
+
+        .card-header-text {
+            font-size: 11px; letter-spacing: 4px; color: var(--accent-deep);
+            text-transform: uppercase; text-align: center; font-weight: 700; transform: translateZ(20px);
+        }
+
+        .hero-main { text-align: center; margin-top: 40px; transform: translateZ(50px); }
+
+        .hero-title {
+            font-family: 'Montserrat', sans-serif; font-size: clamp(120px, 30vw, 180px);
+            font-weight: 900; line-height: 0.9; margin: 0; letter-spacing: -6px;
+            background: linear-gradient(180deg, #1a1a1a 0%, #9B2C2C 100%);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+            filter: drop-shadow(0 15px 30px rgba(155, 44, 44, 0.2)); transition: transform 0.2s;
+        }
+
+        .hero-subtitle {
+            margin-top: 15px; display: block; font-size: 12px;
+            letter-spacing: 6px; color: var(--text-secondary); text-transform: uppercase;
+        }
+
+        .countdown-container {
+            margin-top: 20px; display: flex; justify-content: center; gap: 15px;
+            font-family: 'Fira Code', monospace; color: var(--accent-deep); transform: translateZ(30px);
+        }
+        .countdown-item { display: flex; flex-direction: column; align-items: center; }
+        .cd-number { font-size: 18px; font-weight: 700; line-height: 1; }
+        .cd-label { font-size: 8px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7; margin-top: 4px; }
+
+        .scroll-indicator {
+            position: absolute; bottom: 30px; font-size: 11px; color: var(--accent-deep); letter-spacing: 3px;
+            animation: bounce 2.5s infinite; pointer-events: none; transition: opacity 0.5s ease;
+        }
+        .scroll-indicator.hidden { opacity: 0; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); opacity: 0.5; } 50% { transform: translateY(8px); opacity: 1; } }
+
+        .content-wrapper { position: relative; z-index: 2; max-width: 800px; margin: 0 auto; padding: 0 20px; }
+        .section-gap { padding: 80px 0; }
+
+        .fade-in-up {
+            opacity: 0; transform: translateY(40px); transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+        .fade-in-up.visible { opacity: 1; transform: translateY(0); }
+
+        .details-grid .detail-item:nth-child(1) { transition-delay: 0.1s; }
+        .details-grid .detail-item:nth-child(2) { transition-delay: 0.2s; }
+        .timeline-block:nth-child(2) { transition-delay: 0s; }
+        .timeline-block:nth-child(3) { transition-delay: 0.1s; }
+        .timeline-block:nth-child(4) { transition-delay: 0.2s; }
+        .timeline-block:nth-child(5) { transition-delay: 0.3s; }
+
+        .intro-card {
+            background: rgba(255,255,255,0.7); backdrop-filter: blur(25px);
+            border: 1px solid rgba(255,255,255,0.85); border-radius: 30px;
+            padding: 50px 30px; box-shadow: 0 20px 40px -10px rgba(130, 39, 39, 0.15); text-align: center;
+        }
+        .intro-name {
+            font-family: 'Playfair Display', serif; font-size: 34px; font-weight: 600; font-style: italic;
+            color: var(--text-primary); margin: 0 0 15px 0;
+        }
+        .intro-text p { font-size: 16px; color: var(--text-secondary); margin-bottom: 24px; font-weight: 300; }
+
+        .details-grid {
+            display: grid; gap: 1px; background: rgba(130, 39, 39, 0.1); 
+            border: 1px solid rgba(130, 39, 39, 0.1); border-radius: 24px; overflow: hidden; margin-top: 40px;
+        }
+        .detail-item {
+            background: rgba(255,255,255,0.9); padding: 30px; display: flex; flex-direction: column; align-items: center; text-align: center;
+        }
+        .detail-label {
+            font-size: 11px; font-weight: 700; color: var(--accent-deep); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px;
+        }
+        .detail-value { font-size: 17px; font-weight: 600; color: var(--text-primary); }
+
+        .dresscode-colors { display: flex; gap: 15px; margin-top: 12px; justify-content: center; }
+        .color-swatch {
+            width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.08); position: relative; cursor: pointer;
+        }
+        .color-swatch::after {
+            content: attr(data-color); position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%);
+            font-size: 10px; font-weight: 600; white-space: nowrap; 
+            color: var(--accent-deep); background: rgba(255,255,255,0.9);
+            padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(0,0,0,0.05);
+            opacity: 0; pointer-events: none; transition: opacity 0.2s, bottom 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .color-swatch:hover::after { opacity: 1; bottom: -30px; }
+        .color-note { font-family: 'Fira Code', monospace; font-size: 10px; color: #999; margin-top: 8px; letter-spacing: 0.5px; }
+
+        .map-section { padding: 0 0 60px 0; display: flex; flex-direction: column; align-items: center; }
+        .map-container {
+            width: 100%; height: 300px; border-radius: 24px; overflow: hidden;
+            box-shadow: 0 20px 40px -10px rgba(130, 39, 39, 0.1); border: 1px solid rgba(255,255,255,0.8);
+            position: relative; background: #eee;
+        }
+        .map-container iframe { width: 100%; height: 100%; border: 0; filter: grayscale(20%) contrast(1.1); }
+
+        .timeline-section { position: relative; padding-left: 10px; }
+        .timeline-line-bg { position: absolute; left: 33px; top: 70px; bottom: 0; width: 2px; background: var(--line-color); }
+        .timeline-line-active {
+            position: absolute; left: 33px; top: 70px; width: 2px;
+            background: linear-gradient(to bottom, var(--accent-deep) 80%, rgba(130, 39, 39, 0) 100%);
+            height: 0; transition: height 0.1s linear;
+        }
+        .timeline-block {
+            position: relative; margin-bottom: 70px; padding-left: 50px; opacity: 0.3; transform: scale(0.95); transition: all 0.5s ease;
+        }
+        .timeline-block.active { opacity: 1; transform: scale(1); }
+        .timeline-block.past { opacity: 0.5; transform: scale(0.98); }
+        .timeline-dot {
+            position: absolute; left: 26px; top: 2px; width: 16px; height: 16px;
+            background: #fff; border: 3px solid var(--accent-deep); border-radius: 50%; z-index: 2; transition: all 0.3s;
+        }
+        .timeline-block.active .timeline-dot { background: var(--accent-deep); box-shadow: 0 0 0 6px rgba(130, 39, 39, 0.2); }
+        .timeline-block.past .timeline-dot { background: #fff; border-color: var(--text-secondary); }
+
+        .rsvp-container {
+            background: #fff; border-radius: 30px; padding: 45px 30px;
+            box-shadow: 0 30px 60px -15px rgba(45, 18, 20, 0.08); border: 1px solid rgba(0,0,0,0.03); text-align: center;
+        }
+        .input-clean {
+            width: 100%; padding: 18px; background: #F8F5F5; border: 1px solid transparent;
+            border-radius: 14px; margin-bottom: 15px; font-family: 'Montserrat', sans-serif; font-size: 15px; transition: 0.3s;
+        }
+        .input-clean:focus { background: #fff; border-color: var(--accent-deep); outline: none; }
+
+        .btn-submit {
+            width: 100%; padding: 18px; background: var(--accent-deep); 
+            color: #fff; border: none; border-radius: 14px; font-weight: 600; letter-spacing: 1px;
+            cursor: pointer; transition: 0.3s; font-family: 'Montserrat', sans-serif;
+        }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.15); opacity: 0.9; }
+        .btn-submit:disabled { opacity: 0.7; }
+
+        .radio-group { display: flex; gap: 12px; margin-bottom: 25px; }
+        .radio-group label {
+            flex: 1; padding: 14px; border-radius: 12px; border: 1px solid #E2D8D8; cursor: pointer;
+            font-size: 14px; color: var(--text-secondary); transition: 0.3s; background: #fff;
+        }
+        .radio-group input:checked + label { background: var(--accent-deep); color: white; border-color: var(--accent-deep); }
+
+        .btn-calendar {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin-top: 15px; padding: 12px 24px;
+            font-size: 13px; color: var(--accent-deep); border: 1px dashed var(--accent-deep); border-radius: 30px;
+            text-decoration: none; transition: 0.3s; cursor: pointer;
+        }
+        .btn-calendar:hover { background: rgba(130, 39, 39, 0.05); border-style: solid; }
+
+    </style>
+</head>
+<body>
+    <div class="ambient-light">
+        <div class="light-orb orb-1"></div>
+        <div class="light-orb orb-2"></div>
+    </div>
+
+    <div id="ios-permission">
+        <p style="font-size: 15px; color: var(--text-secondary); margin-bottom: 30px; text-align: center; max-width: 280px; line-height: 1.8;">
+            Chao xìn!!! Bạn có lời mời từ<br><strong style="color: var(--text-primary); font-size: 18px;">Nguyễn Tiến Đạt</strong>
+        </p>
+        <button class="btn-start tech-font" onclick="requestAccess()">MỞ NGAY</button>
+    </div>
+
+    <section class="hero-section">
+        <div class="card-container" id="card3d">
+            <div class="card">
+                <div class="card-shine" id="shine"></div>
+                <div class="layer-1" style="display:flex; justify-content:center; width: 100%;">
+                    <span class="card-header-text tech-font">INVITATION</span>
+                </div>
+                <div class="hero-main">
+                    <h1 class="hero-title">18</h1>
+                    <span class="tech-font hero-subtitle">The Endless Chapter</span>
+                    <div class="countdown-container" id="countdown">
+                        <div class="countdown-item"><span class="cd-number" id="days">00</span><span class="cd-label">Ngày</span></div>
+                        <div class="countdown-item"><span class="cd-number" id="hours">00</span><span class="cd-label">Giờ</span></div>
+                        <div class="countdown-item"><span class="cd-number" id="minutes">00</span><span class="cd-label">Phút</span></div>
+                        <div class="countdown-item"><span class="cd-number" id="seconds">00</span><span class="cd-label">Giây</span></div>
+                    </div>
+                </div>
+                <div class="layer-2" style="margin-top: auto;">
+                    <div style="border-bottom: 1px solid rgba(0,0,0,0.06); padding: 12px 0; display:flex; justify-content:space-between;">
+                        <span class="tech-font" style="font-size:10px; font-weight:700; color: #000;">DATE</span>
+                        <span class="tech-font" style="font-size:12px;">22.02.2026</span>
+                    </div>
+                    <div style="padding: 12px 0; display:flex; justify-content:space-between;">
+                        <span class="tech-font" style="font-size:10px; font-weight:700; color: #000;">LOCATION</span>
+                        <span class="tech-font" style="font-size:12px;">THPT BÌNH SƠN</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="scroll-indicator tech-font" id="scrollIndicator">SCROLL</div>
+    </section>
+
+    <div class="content-wrapper">
+        <section class="section-gap intro-section fade-in-up">
+            <div class="intro-card">
+                <p class="serif-font" style="font-size: 20px; color: var(--text-secondary); margin-bottom: 5px;" id="introHeader">Thân gửi,</p>
+                <h2 class="intro-name" id="introName">Bạn yêu quý</h2>
+                
+                <div class="intro-text" id="introContent">
+                    <p>Tuổi 18 là chương cuối đẹp đẽ của thanh xuân học trò, là dấu son khép lại những năm tháng vô tư bên mái trường.</p>
+                    <p>Trong ngày kỷ yếu đặc biệt này, Đạt không chỉ muốn lưu giữ hình ảnh của chính mình, mà còn mong muốn cất giữ thật nhiều nụ cười và kỷ niệm từ bạn.</p>
+                    <p style="color: var(--text-primary); font-weight: 800;">Sự hiện diện của bạn chính là mảnh ghép quý giá và đẹp nhất.</p>
+                </div>
+            </div>
+
+            <div class="details-grid">
+                <div class="detail-item fade-in-up">
+                    <span class="detail-label tech-font">TIME</span>
+                    <span class="detail-value">08:00 — 9:30</span>
+                    <div class="tech-font" style="font-size: 13px; color: #888; margin-top: 6px;">Chủ nhật, 22.02.2026</div>
+                    <a class="btn-calendar tech-font" onclick="addToCalendar()">
+                        <i class="far fa-calendar-plus"></i> Save to Calendar
+                    </a>
+                </div>
+                <div class="detail-item fade-in-up">
+                    <span class="detail-label tech-font">DRESSCODE</span>
+                    <span class="detail-value">Lịch sự & Nhẹ nhàng</span>
+                    <div class="color-note">GỢI Ý TONE MÀU</div>
+                    <div class="dresscode-colors">
+                        <div class="color-swatch" style="background: #ffffff;" data-color="White"></div>
+                        <div class="color-swatch" style="background: #1a1a1a;" data-color="Black"></div>
+                        <div class="color-swatch" style="background: #800000;" data-color="Maroon"></div>
+                        <div class="color-swatch" style="background: #a9a9a9;" data-color="Grey"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section-gap map-section fade-in-up">
+            <div class="map-container">
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3840.408993856417!2d108.7558783!3d15.3076924!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3169b5a61f1fefd1%3A0xe60da7ca477694c8!2zVHLGsOG7nW5nIFRIUFQgQsOsbmggU8ahbg!5e0!3m2!1svi!2s" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
+        </section>
+
+        <section class="section-gap timeline-section" id="timeline">
+            <h2 class="serif-font fade-in-up" style="text-align: center; margin: 0 0 40px 0; font-style: italic; font-size: 32px;">Lịch Trình</h2>
+            <div class="timeline-line-bg"></div>
+            <div class="timeline-line-active" id="progressLine"></div>
+            <div class="timeline-block">
+                <div class="timeline-dot"></div>
+                <div class="tech-font" style="font-size:12px; color:var(--accent-deep); font-weight:700; margin-bottom:6px;">07:00</div>
+                <h3 style="margin:0 0 6px 0; font-size:17px; font-weight: 800;">Conecpt Lớp</h3>
+                <p style="font-size:14px; color:var(--text-secondary); margin:0;">Chụp tập thể  lớp ngoài sân</p>
+            </div>
+            <div class="timeline-block">
+                <div class="timeline-dot"></div>
+                <div class="tech-font" style="font-size:12px; color:var(--accent-deep); font-weight:700; margin-bottom:6px;">08:00</div>
+                <h3 style="margin:0 0 6px 0; font-size:17px; font-weight: 800;">Đón khách mời</h3>
+                <p style="font-size:14px; color:var(--text-secondary); margin:0;">Chụp cùng Người thân & Bạn bè</p>
+            </div>
+            <div class="timeline-block">
+                <div class="timeline-dot"></div>
+                <div class="tech-font" style="font-size:12px; color:var(--accent-deep); font-weight:700; margin-bottom:6px;">09:00</div>
+                <h3 style="margin:0 0 6px 0; font-size:17px; font-weight: 800;">Concept Lớp</h3>
+                <p style="font-size:14px; color:var(--text-secondary); margin:0;">Chụp ảnh tập thể trong lớp</p>
+            </div>
+            <div class="timeline-block">
+                <div class="timeline-dot"></div>
+                <div class="tech-font" style="font-size:17px; color:var(--accent-deep); font-weight:800; margin-bottom:6px;">....</div>
+                <p style="font-size:14px; color:var(--text-secondary); margin:0;">Khác</p>
+            </div>
+        </section>
+
+        <section class="section-gap rsvp-section fade-in-up">
+            <h2 class="final-font" style="margin:0 0 10px 0; font-size: 28px; font-weight: 600;">XÁC NHẬN THAM DỰ</h2>
+            <p style="font-size:14px; color:var(--text-secondary); margin-bottom:30px;">Phản hồi giúp Đạt càng sớm càng tốt nhé!</p>
+            <form id="rsvpForm">
+                <input type="text" name="name" class="input-clean" placeholder="Tên của bạn..." required>
+
+                <input type="text" name="email" class="input-clean" placeholder="Email (Optional)">
+                
+                <div class="radio-group">
+                    <input type="radio" name="status" id="yes" value="Join" checked hidden>
+                    <label for="yes">Sẽ có mặt</label>
+                    <input type="radio" name="status" id="no" value="Busy" hidden>
+                    <label for="no">Khác...</label>
+                </div>
+                <input type="text" name="message" class="input-clean" placeholder="Lời nhắn gửi...">
+                <button type="submit" class="btn-submit tech-font" id="btnSubmit">GỬI XÁC NHẬN</button>
+            </form>
+        </section>
+        
+        <div style="text-align: center; padding-bottom: 40px; font-size: 11px; color: #999; letter-spacing: 1px;" class="tech-font">
+            NGUYEN TIEN DAT © 2026
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbwAqtXW5r6AzNmFZjkwJ8TF14p3ubera7hyp2fVmcRn8rQDVKBPsxLnzqAVariOByVLyQ/exec";
+        
+        function updateCountdown() {
+            const targetDate = new Date("2026-02-22T08:00:00").getTime();
+            const now = new Date().getTime();
+            const distance = targetDate - now;
+            if (distance < 0) { document.getElementById("countdown").innerHTML = "HAPPENING NOW!"; return; }
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+            document.getElementById("days").innerText = days < 10 ? "0" + days : days;
+            document.getElementById("hours").innerText = hours < 10 ? "0" + hours : hours;
+            document.getElementById("minutes").innerText = minutes < 10 ? "0" + minutes : minutes;
+            document.getElementById("seconds").innerText = seconds < 10 ? "0" + seconds : seconds;
+        }
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
+
+        const GUEST_DATABASE = {
+            '1': { 
+                header: "Gửi chị yêu quý,",
+                name: "Chị Anh", 
+                content: `
+                    <p>Sắp tới là ngày kỷ yếu, đánh dấu một cột mốc đặc biệt trong quãng đời học sinh của em.</p>
+                    <p>Em rất mong chị có thể dành chút thời gian đến chung vui và lưu lại những khoảnh khắc đẹp cùng em.</p>
+                    <p>Ngày vui này sẽ chẳng thể trọn vẹn nếu thiếu vắng hình bóng của chị.</p>
+                    <p style="color: var(--accent-deep); font-weight: 800;">Sự hiện diện của chị là mảnh ghép đẹp nhất!</p>
+                ` 
+            },
+            '2': { 
+                header: "Hello ông anh,",
+                name: "Anh Bình", 
+                content: `
+                    <p>Gửi anh Bình, người anh em cùng đam mê công nghệ.</p>
+                    <p>Mời anh ghé qua trường cũ vào sáng Chủ Nhật để em mời anh một kiểu ảnh kỉ niệm nhé!</p>
+                    <p style="color: var(--text-primary); font-weight: 800;">Hẹn gặp anh ở đó.</p>
+                ` 
+            },
+            'crush': {
+                header: "Hi cậu,",
+                name: "Cậu",
+                content: `
+                    <p>Tuổi 18 của tớ sẽ thật rực rỡ nếu có cậu ở đó.</p>
+                    <p>Đừng để tớ phải chờ nhé!</p>
+                    <p style="color: var(--accent-deep); font-weight: 800;">Tớ đợi cậu.</p>
+                `
+            }
+        };
+
+        function personalizeContent() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const idParam = urlParams.get('id');
+            const nameParam = urlParams.get('n');
+            const introName = document.getElementById('introName');
+            const introContent = document.getElementById('introContent');
+            const introHeader = document.getElementById('introHeader');
+            const rsvpNameInput = document.querySelector('input[name="name"]');
+
+            if (idParam && GUEST_DATABASE[idParam]) {
+                const guest = GUEST_DATABASE[idParam];
+                if(introHeader && guest.header) introHeader.innerText = guest.header;
+                if(introName) introName.innerText = guest.name;
+                if(introContent && guest.content) introContent.innerHTML = guest.content;
+                if(rsvpNameInput) rsvpNameInput.value = guest.name; 
+            } else if (nameParam) {
+                if(introName) introName.innerText = nameParam;
+                if(rsvpNameInput) rsvpNameInput.value = nameParam;
+            }
+        }
+        document.addEventListener('DOMContentLoaded', personalizeContent);
+
+        function addToCalendar() {
+            const event = [
+                'BEGIN:VCALENDAR', 'VERSION:2.0', 'BEGIN:VEVENT',
+                'DTSTART:20260222T080000', 'DTEND:20260222T113000',
+                'SUMMARY:Dự chụp kỷ yếu',
+                'DESCRIPTION:w Nguyễn Tiến Đạt.',
+                'LOCATION:THPT Bình Sơn', 'END:VEVENT', 'END:VCALENDAR'
+            ].join('\n');
+            const blob = new Blob([event], { type: 'text/calendar;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.setAttribute('download', 'ky-yeu-12c6.ics');
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        }
+
+        const cardContainer = document.getElementById('card3d');
+        const card = cardContainer.querySelector('.card');
+        const shine = document.getElementById('shine');
+        const overlay = document.getElementById('ios-permission');
+        const MAX_TILT = 20;
+
+        function clamp(val, min, max) { return Math.min(Math.max(val, min), max); }
+
+        function updateCardTransform(x, y) {
+            if(!card) return;
+            card.style.transform = `rotateY(${x}deg) rotateX(${-y}deg)`;
+            if(shine) {
+                shine.style.opacity = "0.5";
+                shine.style.transform = `translateX(${x * 2}px) translateY(${-y * 2}px)`;
+            }
+        }
+
+        function handleOrientation(event) {
+            if (event.beta === null || event.gamma === null) return;
+            let x = clamp(event.gamma, -MAX_TILT, MAX_TILT);
+            let y = clamp(event.beta - 45, -MAX_TILT, MAX_TILT);
+            updateCardTransform(x, y);
+        }
+
+        function handleMotion(event) {
+            if (!event.accelerationIncludingGravity) return;
+            const ag = event.accelerationIncludingGravity;
+            let x = clamp(ag.x * 5, -MAX_TILT, MAX_TILT);
+            let y = clamp(ag.y * 5, -MAX_TILT, MAX_TILT);
+            updateCardTransform(x, -y); 
+        }
+
+        let currentRotateY = 0;
+        let currentRotateX = 0;
+        let startTouchX = 0;
+        let startTouchY = 0;
+
+        function enableTouchFallback() {
+            cardContainer.addEventListener('touchstart', (e) => {
+                startTouchX = e.touches[0].clientX;
+                startTouchY = e.touches[0].clientY;
+            }, { passive: true });
+
+            cardContainer.addEventListener('touchmove', (e) => {
+                e.preventDefault(); 
+                const touch = e.touches[0];
+                const deltaX = (touch.clientX - startTouchX) / 5;
+                const deltaY = (touch.clientY - startTouchY) / 5;
+                let nextY = clamp(currentRotateY + deltaX, -MAX_TILT, MAX_TILT);
+                let nextX = clamp(currentRotateX + deltaY, -MAX_TILT, MAX_TILT);
+                updateCardTransform(nextY, -nextX);
+            }, { passive: false });
+
+            cardContainer.addEventListener('touchend', (e) => {
+                const touch = e.changedTouches[0];
+                const deltaX = (touch.clientX - startTouchX) / 5;
+                const deltaY = (touch.clientY - startTouchY) / 5;
+                currentRotateY = clamp(currentRotateY + deltaX, -MAX_TILT, MAX_TILT);
+                currentRotateX = clamp(currentRotateX + deltaY, -MAX_TILT, MAX_TILT);
+            });
+        }
+
+        async function requestAccess() {
+            try {
+                if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    const response = await DeviceOrientationEvent.requestPermission();
+                    if (response === 'granted') {
+                        overlay.style.opacity = '0'; setTimeout(() => overlay.style.display = 'none', 500);
+                        window.addEventListener('deviceorientation', handleOrientation, true);
+                        return;
+                    }
+                } 
+                if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                    const response = await DeviceMotionEvent.requestPermission();
+                    if (response === 'granted') {
+                        overlay.style.opacity = '0'; setTimeout(() => overlay.style.display = 'none', 500);
+                        window.addEventListener('devicemotion', handleMotion, true);
+                        return;
+                    }
+                }
+                if (window.DeviceOrientationEvent && !('requestPermission' in DeviceOrientationEvent)) {
+                    overlay.style.opacity = '0'; setTimeout(() => overlay.style.display = 'none', 500);
+                    window.addEventListener('deviceorientation', handleOrientation, true);
+                    return;
+                }
+                throw new Error("Fallback to touch");
+            } catch (e) {
+                overlay.style.opacity = '0'; setTimeout(() => overlay.style.display = 'none', 500);
+                enableTouchFallback();
+            }
+        }
+        
+        document.addEventListener('mousemove', (e) => {
+            if (window.scrollY > 100) return;
+            const x = (window.innerWidth / 2 - e.clientX) / 20;
+            const y = (window.innerHeight / 2 - e.clientY) / 20;
+            updateCardTransform(-x, -y); 
+        });
+
+        const timelineLine = document.getElementById('progressLine');
+        const timelineSection = document.getElementById('timeline');
+        const timelineBlocks = document.querySelectorAll('.timeline-block');
+        const fadeElements = document.querySelectorAll('.fade-in-up');
+        const scrollIndicator = document.getElementById('scrollIndicator');
+
+        function checkTimeline() {
+            const triggerBottom = window.innerHeight * 0.8;
+            const centerPoint = window.innerHeight * 0.5;
+            
+            if(window.scrollY > 100) {
+                scrollIndicator.classList.add('hidden');
+            } else {
+                scrollIndicator.classList.remove('hidden');
+            }
+
+            fadeElements.forEach(el => {
+                const boxTop = el.getBoundingClientRect().top;
+                if(boxTop < triggerBottom) el.classList.add('visible');
+            });
+            timelineBlocks.forEach(block => {
+                const boxTop = block.getBoundingClientRect().top;
+                if(boxTop < triggerBottom) {
+                    if (boxTop < centerPoint + 100 && boxTop > centerPoint - 100) {
+                        block.classList.add('active'); block.classList.remove('past');
+                    } else if (boxTop < centerPoint - 100) {
+                        block.classList.remove('active'); block.classList.add('past');
+                    } else {
+                        block.classList.remove('active'); block.classList.remove('past');
+                    }
+                }
+            });
+            if (timelineSection) {
+                const rect = timelineSection.getBoundingClientRect();
+                const start = window.innerHeight * 0.7;
+                const height = timelineSection.offsetHeight;
+                let percent = ((start - rect.top) / height) * 100;
+                if(timelineLine) timelineLine.style.height = `${Math.min(Math.max(percent, 0), 100)}%`;
+            }
+        }
+
+        window.addEventListener('scroll', checkTimeline);
+        checkTimeline();
+
+        document.getElementById('rsvpForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmit');
+            const originalText = btn.innerText;
+            const form = this;
+            
+            const formData = new FormData(this);
+            const dataObject = Object.fromEntries(formData.entries());
+
+            btn.innerText = "ĐANG GỬI..."; btn.disabled = true;
+
+            fetch(API_URL, { 
+                method: 'POST', 
+                body: JSON.stringify(dataObject) 
+            })
+            .then(response => response.json()) 
+            .then(result => {
+                if(result.result === 'success' || (result.error && result.error.toString().includes("MailApp"))) {
+                    confetti({
+                        particleCount: 150, spread: 80, origin: { y: 0.6 },
+                        colors: ['#822727', '#E53E3E', '#FFD700', '#FFFFFF']
+                    });
+                    btn.innerText = "ĐÃ GỬI THÀNH CÔNG!";
+                    btn.style.background = "#2D1214";
+                    form.reset();
+                    setTimeout(() => { 
+                        btn.innerText = originalText; 
+                        btn.style.background = ""; 
+                        btn.disabled = false; 
+                    }, 3000);
+                } else {
+                    throw new Error(result.error || "Lỗi không xác định");
+                }
+            })
+            .catch(error => {
+                console.error('Lỗi:', error);
+                btn.innerText = "CÓ LỖI, THỬ LẠI SAU";
+                setTimeout(() => { btn.innerText = originalText; btn.disabled = false; }, 3000);
+            });
+        });
+    </script>
+</body>
+</html>
